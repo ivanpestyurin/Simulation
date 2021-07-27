@@ -8,29 +8,31 @@ namespace Simulation
 {
     class EngineSimulationDVS : EngineSimulation
     {
-        private readonly float I;
-        private readonly float[] M;
-        private readonly float[] V;
-        private readonly float Toverheating;
-        private readonly float Hm;
-        private readonly float Hv;
-        private readonly float C;
+        private readonly double I;
+        private readonly double[] M;
+        private readonly double[] V;
+        private readonly double Toverheating;
+        private readonly double Hm;
+        private readonly double Hv;
+        private readonly double C;
 
-        private float m; // текущий крутящий момент
-        private float v; // текущая скорость вращения коленвала
-        private float a; // ускорение
-        private float Vh; // скорость нагрева двигателя
-        private float Vc; // скорость охлаждения двигателя
-        private float Tengine; // температура двигателя
-        private float Tenvironment; // температура окружающей среды
+        private double m; // текущий крутящий момент
+        private double v; // текущая скорость вращения коленвала
+        private double a; // ускорение
+        private double Vh; // скорость нагрева двигателя
+        private double Vc; // скорость охлаждения двигателя
+        private double Tengine; // температура двигателя
+        private double Tenvironment; // температура окружающей среды
+        private double Tprevious; // температура двигателя, нужно для случаев,
+                                  // когда до заданной температуры нельзя дойти
 
         private TimeSpan totalTime = new TimeSpan(0, 0, 0, 0, 0); // счетчик времени
-        private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 100); // раз в какое время будет
+        private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 1); // раз в какое время будет
                                                                  // считать
-        private float t;// время в секундах, зависит от lambda
+        private double t;// время в секундах, зависит от lambda
 
-        public EngineSimulationDVS(float I, float[] M, float[] V, float Toverheating,
-            float Hm, float Hv, float C)
+        public EngineSimulationDVS(double I, double[] M, double[] V, double Toverheating,
+            double Hm, double Hv, double C)
         {
             this.I = I;
             this.M = M;
@@ -40,11 +42,10 @@ namespace Simulation
             this.Hv = Hv;
             this.C = C;
 
-            Tengine = Tenvironment;
             m = M[0];
             v = V[0];
 
-            t = (float)lambda.TotalMilliseconds / 1000;
+            t = lambda.TotalMilliseconds / 1000;
         }
 
         public override void StartSimulation()
@@ -52,24 +53,24 @@ namespace Simulation
             Console.Write("Темература на улице: ");
             try
             {
-                Tenvironment = float.Parse(Console.ReadLine());
+                Tenvironment = double.Parse(Console.ReadLine());
             }
             catch (FormatException)
             {
                 throw;
             }
-            
+
+            Tengine = Tenvironment;
             DoProcessing();
-            Console.WriteLine($"{totalTime.Minutes}:{totalTime.Seconds}" +
-                $":{totalTime.Milliseconds}");
+            ShowReport();
         }
 
         private void DoProcessing()
         {
             int x = 0; // index
 
-            float A; // Ax + By + C = 0
-            float C; 
+            double A; // Ax + By + C = 0
+            double C; 
             LineEquation.GetKfsByTwoDotsB(V[x], M[x], V[x + 1], M[x + 1], out A, out C);
 
             while (Tengine <= Toverheating)
@@ -84,12 +85,32 @@ namespace Simulation
                 v += a * t;
                 m = A * v + C; // уравнение прямой
 
+                Tprevious = Tengine;
+
                 EngineHeating();
                 EngineCooling();
 
-                Console.WriteLine($"v={v}\tm={m}\ta={a}\tT={Tengine}");
-                totalTime = totalTime.Add(lambda); ;
+                if (Tprevious == Tengine)
+                    break;
+
+                //Console.WriteLine($"v={v}\tm={m}\ta={a}\tT={Tengine}");
+                totalTime = totalTime.Add(lambda);
             }
+        }
+
+        private void ShowReport()
+        {
+            if (Tprevious != Tengine)
+            {
+                Console.WriteLine($"{totalTime.Minutes}:{totalTime.Seconds}" +
+                    $":{totalTime.Milliseconds}");
+            }
+            else
+            {
+                Console.WriteLine($"Больше температура не поднимается, за {totalTime.Minutes}:{totalTime.Seconds}" +
+                    $":{totalTime.Milliseconds} она поднялась до {Tengine}°C");
+            }
+
         }
 
         protected override void EngineHeating()

@@ -21,9 +21,6 @@ namespace Simulation
         private double Vh; // скорость нагрева двигателя
         private double Vc; // скорость охлаждения двигателя
 
-        private double Tprevious; // температура двигателя, нужно для случаев,
-                                  // когда до заданной температуры нельзя дойти
-
         private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 1); // раз в какое время будет
                                                                  // считать
         private double t;// время в секундах, зависит от lambda
@@ -32,6 +29,8 @@ namespace Simulation
             double Hm, double Hv, double C)
         {
             this.I = I;
+            if (this.I <= 0)
+                throw new Exception("I должно быть больше 0");
             this.M = M;
             this.V = V;
             this.Toverheating = Toverheating;
@@ -80,6 +79,7 @@ namespace Simulation
                 }
 
                 a = m / I;
+
                 v += a * t;
                 m = A * v + C; // уравнение прямой
 
@@ -100,16 +100,12 @@ namespace Simulation
         {
             if (Tprevious == Tengine)
             {
-                throw new Exception("Слишком низкая температура на улице");
-                //Console.WriteLine($"{totalTime.Minutes}:{totalTime.Seconds}" +
-                //    $":{totalTime.Milliseconds}");
+                Console.WriteLine("Слишком низкая температура на улице");
             }
             else
             {
-                //Console.WriteLine($"Больше температура не поднимается, за {totalTime.Minutes}:{totalTime.Seconds}" +
-                //    $":{totalTime.Milliseconds} она поднялась до {Tengine}°C");
+                Console.WriteLine($"{totalTime.TotalSeconds} секунд");
             }
-
         }
 
         protected override void EngineHeating()

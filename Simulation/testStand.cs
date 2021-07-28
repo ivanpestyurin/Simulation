@@ -6,9 +6,10 @@ using System.Threading.Tasks;
 
 namespace Simulation
 {
-    class TestStand
+    class TestStand : ITesting
     {
         private EngineSimulation engine;
+
         public TestStand(EngineSimulation engine)
         {
             this.engine = engine;
@@ -17,7 +18,15 @@ namespace Simulation
         public void StartTesting()
         {
             engine.StartSimulation();
-        }
+            while (true)
+            {
+                if (engine.Tengine >= engine.Toverheating)
+                {
+                    Console.WriteLine($"{engine.totalTime.TotalSeconds}");
+                    break;
+                }
 
+            }
+        }
     }
 }

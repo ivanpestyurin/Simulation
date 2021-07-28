@@ -11,7 +11,6 @@ namespace Simulation
         private readonly double I;
         private readonly double[] M;
         private readonly double[] V;
-        private readonly double Toverheating;
         private readonly double Hm;
         private readonly double Hv;
         private readonly double C;
@@ -21,12 +20,10 @@ namespace Simulation
         private double a; // ускорение
         private double Vh; // скорость нагрева двигателя
         private double Vc; // скорость охлаждения двигателя
-        private double Tengine; // температура двигателя
-        private double Tenvironment; // температура окружающей среды
+
         private double Tprevious; // температура двигателя, нужно для случаев,
                                   // когда до заданной температуры нельзя дойти
 
-        private TimeSpan totalTime = new TimeSpan(0, 0, 0, 0, 0); // счетчик времени
         private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 1); // раз в какое время будет
                                                                  // считать
         private double t;// время в секундах, зависит от lambda
@@ -41,6 +38,7 @@ namespace Simulation
             this.Hm = Hm;
             this.Hv = Hv;
             this.C = C;
+            totalTime = new TimeSpan(0, 0, 0, 0, 0);
 
             m = M[0];
             v = V[0];
@@ -100,15 +98,16 @@ namespace Simulation
 
         private void ShowReport()
         {
-            if (Tprevious != Tengine)
+            if (Tprevious == Tengine)
             {
-                Console.WriteLine($"{totalTime.Minutes}:{totalTime.Seconds}" +
-                    $":{totalTime.Milliseconds}");
+                throw new Exception("Слишком низкая температура на улице");
+                //Console.WriteLine($"{totalTime.Minutes}:{totalTime.Seconds}" +
+                //    $":{totalTime.Milliseconds}");
             }
             else
             {
-                Console.WriteLine($"Больше температура не поднимается, за {totalTime.Minutes}:{totalTime.Seconds}" +
-                    $":{totalTime.Milliseconds} она поднялась до {Tengine}°C");
+                //Console.WriteLine($"Больше температура не поднимается, за {totalTime.Minutes}:{totalTime.Seconds}" +
+                //    $":{totalTime.Milliseconds} она поднялась до {Tengine}°C");
             }
 
         }
@@ -123,5 +122,6 @@ namespace Simulation
             Vc = (C * (Tenvironment - Tengine)) * t;
             Tengine += Vc;
         }
+
     }
 }

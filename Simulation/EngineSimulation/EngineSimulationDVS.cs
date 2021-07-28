@@ -8,12 +8,15 @@ namespace Simulation
 {
     class EngineSimulationDVS : EngineSimulation
     {
-        private readonly double I;
-        private readonly double[] M;
-        private readonly double[] V;
-        private readonly double Hm;
-        private readonly double Hv;
-        private readonly double C;
+        private readonly double I; // Момент инерции двигателя
+        private readonly double[] M; // Крутящий момент
+        private readonly double[] V; // Cкорость вращения
+        private readonly double Hm; // Коэффициент зависимости скорости нагрева
+                                    // от крутящего момента
+        private readonly double Hv; // Коэффициент зависимости скорости нагрева
+                                    // от скорости вращения коленвала
+        private readonly double C; // Коэффициент зависимости скорости охлаждения
+                                   // от температуры двигателя и окружающей среды
 
         private double m; // текущий крутящий момент
         private double v; // текущая скорость вращения коленвала
@@ -21,16 +24,17 @@ namespace Simulation
         private double Vh; // скорость нагрева двигателя
         private double Vc; // скорость охлаждения двигателя
 
-        private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 1); // раз в какое время будет
-                                                                 // считать
+        private double Tprevious; // температура двигателя, нужно для случаев,
+                                  // когда до заданной температуры нельзя дойти
+        private TimeSpan lambda = new TimeSpan(0, 0, 0, 0, 1); // частота замеров
         private double t;// время в секундах, зависит от lambda
 
         public EngineSimulationDVS(double I, double[] M, double[] V, double Toverheating,
             double Hm, double Hv, double C)
         {
+            if (I <= 0)
+                throw new Exception("I должно быть больше 0!");
             this.I = I;
-            if (this.I <= 0)
-                throw new Exception("I должно быть больше 0");
             this.M = M;
             this.V = V;
             this.Toverheating = Toverheating;
@@ -54,15 +58,15 @@ namespace Simulation
             }
             catch (FormatException)
             {
-                throw;
+                throw new FormatException("Нужно ввести число!");
             }
 
             Tengine = Tenvironment;
-            DoProcessing();
-            ShowReport();
+            Process();
+            //ShowReport();
         }
 
-        private void DoProcessing()
+        private void Process()
         {
             int x = 0; // index
 
@@ -89,23 +93,15 @@ namespace Simulation
                 EngineCooling();
 
                 if (Tprevious == Tengine)
-                    break;
+                    throw new Exception("Невозможно достичь перегрева в таких условиях!");
 
-                //Console.WriteLine($"v={v}\tm={m}\ta={a}\tT={Tengine}");
                 totalTime = totalTime.Add(lambda);
             }
         }
 
         private void ShowReport()
         {
-            if (Tprevious == Tengine)
-            {
-                Console.WriteLine("Слишком низкая температура на улице");
-            }
-            else
-            {
-                Console.WriteLine($"{totalTime.TotalSeconds} секунд");
-            }
+            Console.WriteLine($"{totalTime.TotalSeconds} секунд");
         }
 
         protected override void EngineHeating()

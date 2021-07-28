@@ -11,11 +11,9 @@ namespace Simulation
     /// </summary>
     abstract class EngineSimulation : ISimulation
     {
-        public double Toverheating { get; protected set; }
+        public double Toverheating { get; protected set; } // температура перегрева
         public TimeSpan totalTime { get; protected set; } // счетчик времени
         public double Tengine { get; protected set; } // температура двигателя
-        public double Tprevious { get; protected set; } // температура двигателя, нужно для случаев,
-                                  // когда до заданной температуры нельзя дойти
 
         protected double Tenvironment; // температура окружающей среды
         public abstract void StartSimulation();

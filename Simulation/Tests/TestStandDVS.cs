@@ -13,8 +13,8 @@ namespace Simulation
             this.engine = engine;
         }
 
-        public void StartTestingWithNewParameters(double I, double[] M, double[] V, double Toverheating,
-            double Hm, double Hv, double C)
+        public void StartTestingWithNewParameters(double I, double[] M, double[] V, 
+            double Toverheating, double Hm, double Hv, double C)
         {
             engine = new EngineSimulationDVS(I, M, V, Toverheating, Hm, Hv, C);
             StartTesting();
@@ -23,18 +23,7 @@ namespace Simulation
         public override void StartTesting()
         {
             engine.StartSimulation();
-            while (true)
-            {
-                if (engine.Tengine >= engine.Toverheating)
-                {
-                    break;
-                }
-                else if (engine.Tengine == engine.Tprevious)
-                {
-                    break;
-                }
-
-            }
+            Console.WriteLine($"{engine.totalTime.TotalSeconds} секунд");
         }
     }
 }
